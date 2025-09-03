@@ -1,0 +1,46 @@
+-- SQL Question 1 (MySQL)
+WITH valid_payments AS (
+  SELECT * FROM PAYMENTS WHERE DAY(PAYMENT_TIME) <> 1
+),
+max_amt AS (
+  SELECT MAX(AMOUNT) AS mx FROM valid_payments
+)
+SELECT vp.AMOUNT AS SALARY,
+       CONCAT(e.FIRST_NAME, ' ', e.LAST_NAME) AS NAME,
+       TIMESTAMPDIFF(YEAR, e.DOB, DATE(vp.PAYMENT_TIME)) AS AGE,
+       d.DEPARTMENT_NAME
+FROM valid_payments vp
+JOIN max_amt m ON vp.AMOUNT = m.mx
+JOIN EMPLOYEE e ON e.EMP_ID = vp.EMP_ID
+JOIN DEPARTMENT d ON d.DEPARTMENT_ID = e.DEPARTMENT;
+
+-- SQL Question 1 (PostgreSQL)
+WITH valid_payments AS (
+  SELECT * FROM payments WHERE EXTRACT(DAY FROM payment_time) <> 1
+),
+max_amt AS (
+  SELECT MAX(amount) AS mx FROM valid_payments
+)
+SELECT vp.amount AS salary,
+       e.first_name || ' ' || e.last_name AS name,
+       EXTRACT(YEAR FROM AGE(DATE(vp.payment_time), e.dob))::int AS age,
+       d.department_name
+FROM valid_payments vp
+JOIN max_amt m ON vp.amount = m.mx
+JOIN employee e ON e.emp_id = vp.emp_id
+JOIN department d ON d.department_id = e.department;
+
+-- SQL Question 2
+SELECT e1.EMP_ID,
+       e1.FIRST_NAME,
+       e1.LAST_NAME,
+       d.DEPARTMENT_NAME,
+       COUNT(e2.EMP_ID) AS YOUNGER_EMPLOYEES_COUNT
+FROM EMPLOYEE e1
+LEFT JOIN EMPLOYEE e2
+  ON e2.DEPARTMENT = e1.DEPARTMENT
+ AND e2.DOB > e1.DOB
+JOIN DEPARTMENT d
+  ON d.DEPARTMENT_ID = e1.DEPARTMENT
+GROUP BY e1.EMP_ID, e1.FIRST_NAME, e1.LAST_NAME, d.DEPARTMENT_NAME
+ORDER BY e1.EMP_ID DESC;
